@@ -1,0 +1,109 @@
+{
+  "users": [
+    {
+      "id": "e6690254-211a-409a-bbd3-96eb3b9a5263",
+      "name": "MobileQA",
+      "phone": "940008281",
+      "passwordHash": "49c6150f2fbbe15a6f2c209b2edc729e:b7525fbd1690a197f476ba5e7d0a78ef6a7d24750910b07a53367b00bde14744759e494ab5ff3151c6bdc67b6781ccc8af13eea7abb4c8fb1ff5590f0cf897e9",
+      "createdAt": "2026-04-10T06:50:12.477Z"
+    }
+  ],
+  "circles": [
+    {
+      "id": "a09c1392-c983-41d9-98b5-6e6c2ac1c3fa",
+      "name": "QA Circle",
+      "createdAt": "2026-04-10T06:50:12.773Z"
+    }
+  ],
+  "circleMembers": [
+    {
+      "id": "24f92610-b9ad-4dff-a505-e3687beb6e2f",
+      "circleId": "a09c1392-c983-41d9-98b5-6e6c2ac1c3fa",
+      "userId": "e6690254-211a-409a-bbd3-96eb3b9a5263",
+      "invitedPhone": null,
+      "role": "owner",
+      "label": "Owner",
+      "createdAt": "2026-04-10T06:50:12.773Z"
+    }
+  ],
+  "trips": [
+    {
+      "id": "d45dea77-24b9-4e0d-8f0d-bbf9a251ba05",
+      "userId": "e6690254-211a-409a-bbd3-96eb3b9a5263",
+      "circleId": "a09c1392-c983-41d9-98b5-6e6c2ac1c3fa",
+      "destinationName": "Office",
+      "destinationLat": 28.6139,
+      "destinationLng": 77.209,
+      "routePoints": [
+        {
+          "lat": 28.61,
+          "lng": 77.2
+        },
+        {
+          "lat": 28.6139,
+          "lng": 77.209
+        }
+      ],
+      "etaSeconds": 10,
+      "expectedArrivalAt": "2026-04-10T06:50:22.792Z",
+      "status": "active",
+      "startedAt": "2026-04-10T06:50:12.792Z",
+      "lastHeartbeatAt": "2026-04-10T06:50:12.809Z",
+      "lastLocationAt": "2026-04-10T06:50:12.809Z",
+      "arrivedAt": null,
+      "endedAt": null,
+      "arrivalCandidateAt": null,
+      "lastBatteryLevel": 12
+    }
+  ],
+  "tripLocations": [
+    {
+      "id": "43b101eb-4e51-4767-b188-25970574a0e9",
+      "tripId": "d45dea77-24b9-4e0d-8f0d-bbf9a251ba05",
+      "userId": "e6690254-211a-409a-bbd3-96eb3b9a5263",
+      "lat": 28.61,
+      "lng": 77.2,
+      "speedMps": null,
+      "batteryLevel": 12,
+      "isCharging": false,
+      "capturedAt": "2026-04-10T06:50:12.809Z"
+    }
+  ],
+  "alerts": [
+    {
+      "id": "83af34db-014b-4b22-8b59-b848dee20be5",
+      "tripId": "d45dea77-24b9-4e0d-8f0d-bbf9a251ba05",
+      "userId": "e6690254-211a-409a-bbd3-96eb3b9a5263",
+      "type": "low_battery",
+      "severity": "medium",
+      "message": "Traveler battery is critically low.",
+      "meta": {
+        "batteryLevel": 12
+      },
+      "createdAt": "2026-04-10T06:50:12.812Z",
+      "acknowledgedAt": "2026-04-10T06:50:12.851Z",
+      "acknowledgedBy": "e6690254-211a-409a-bbd3-96eb3b9a5263"
+    }
+  ],
+  "sosEvents": [],
+  "devices": [
+    {
+      "id": "f50373e5-897f-4f01-9cb8-e036543e0dac",
+      "userId": "e6690254-211a-409a-bbd3-96eb3b9a5263",
+      "deviceId": "device-qa-1",
+      "fcmToken": "fcm-test",
+      "platform": "android",
+      "appVersion": "1.0.0",
+      "lastSeenAt": "2026-04-10T06:50:12.761Z",
+      "batteryLevel": 42,
+      "isCharging": false,
+      "lastHeartbeatAt": "2026-04-10T06:50:12.761Z",
+      "lastLocation": {
+        "lat": 28.61,
+        "lng": 77.2,
+        "capturedAt": "2026-04-10T06:50:12.761Z"
+      },
+      "tripId": null
+    }
+  ]
+}

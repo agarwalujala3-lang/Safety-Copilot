@@ -1,0 +1,17 @@
+{
+  "name": "safety-real-backend",
+  "version": "1.0.0",
+  "description": "Production-style backend for Safety Copilot learning project",
+  "main": "src/server.js",
+  "scripts": {
+    "start": "node src/server.js",
+    "dev": "node --watch src/server.js"
+  },
+  "dependencies": {
+    "@aws-sdk/client-dynamodb": "^3.879.0",
+    "@aws-sdk/lib-dynamodb": "^3.879.0",
+    "cors": "^2.8.5",
+    "express": "^4.21.2",
+    "serverless-http": "^3.2.0"
+  }
+}
