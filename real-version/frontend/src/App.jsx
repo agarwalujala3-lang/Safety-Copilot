@@ -27,6 +27,22 @@ function getOrCreateDeviceId() {
   return id;
 }
 
+function resolveHealthUrl() {
+  const apiBase = import.meta.env.VITE_API_BASE || "http://localhost:4002/api/v1";
+  return apiBase.replace(/\/api\/v1\/?$/, "/health");
+}
+
+function formatTimestamp(value) {
+  if (!value) {
+    return "not synced yet";
+  }
+  try {
+    return new Date(value).toLocaleString();
+  } catch {
+    return "not synced yet";
+  }
+}
+
 export default function App() {
   const [authMode, setAuthMode] = useState("login");
   const [authForm, setAuthForm] = useState(defaultAuthForm);
@@ -40,6 +56,9 @@ export default function App() {
   const [busy, setBusy] = useState(false);
   const [status, setStatus] = useState("Ready");
   const [error, setError] = useState("");
+  const [backendOnline, setBackendOnline] = useState(true);
+  const [lastSyncAt, setLastSyncAt] = useState("");
+  const [autoRefresh, setAutoRefresh] = useState(true);
 
   const [circleName, setCircleName] = useState("Family");
   const [memberPhone, setMemberPhone] = useState("");
@@ -61,6 +80,7 @@ export default function App() {
     isCharging: false
   });
   const [deviceId] = useState(getOrCreateDeviceId);
+  const healthUrl = useMemo(resolveHealthUrl, []);
 
   const activeCircleId = useMemo(() => {
     if (tripForm.circleId) {
@@ -96,6 +116,20 @@ export default function App() {
     } else {
       setTripLocations([]);
     }
+
+    setLastSyncAt(new Date().toISOString());
+  }
+
+  async function checkBackendHealth() {
+    try {
+      const response = await fetch(healthUrl, {
+        method: "GET",
+        cache: "no-store"
+      });
+      setBackendOnline(response.ok);
+    } catch {
+      setBackendOnline(false);
+    }
   }
 
   useEffect(() => {
@@ -110,12 +144,69 @@ export default function App() {
         appVersion: "web-1.0.0"
       });
       await bootstrap(token);
+      await checkBackendHealth();
     }).catch((err) => {
       setError(err.message);
       setToken("");
       localStorage.removeItem("safety_token");
     });
   }, [token]);
+
+  useEffect(() => {
+    if (!token || !autoRefresh) {
+      return;
+    }
+
+    const syncInterval = setInterval(() => {
+      refreshDashboard().catch(() => {});
+    }, 45000);
+
+    const healthInterval = setInterval(() => {
+      checkBackendHealth().catch(() => {});
+    }, 20000);
+
+    return () => {
+      clearInterval(syncInterval);
+      clearInterval(healthInterval);
+    };
+  }, [token, autoRefresh]);
+
+  useEffect(() => {
+    if (!token) {
+      return;
+    }
+
+    function isTypingTarget(target) {
+      const tag = target?.tagName?.toLowerCase?.() || "";
+      return tag === "input" || tag === "textarea" || tag === "select";
+    }
+
+    function handleShortcuts(event) {
+      if (!event.shiftKey || isTypingTarget(event.target)) {
+        return;
+      }
+      const key = event.key.toLowerCase();
+      if (key === "r") {
+        event.preventDefault();
+        refreshDashboard().catch(() => {});
+      }
+      if (key === "m" && activeTrip) {
+        event.preventDefault();
+        sendSimulatedLocation().catch(() => {});
+      }
+      if (key === "s" && activeTrip) {
+        event.preventDefault();
+        triggerSOS("normal").catch(() => {});
+      }
+      if (key === "a" && activeTrip) {
+        event.preventDefault();
+        triggerSOS("silent").catch(() => {});
+      }
+    }
+
+    window.addEventListener("keydown", handleShortcuts);
+    return () => window.removeEventListener("keydown", handleShortcuts);
+  }, [token, activeTrip, locationForm]);
 
   async function withAction(action, successMessage) {
     try {
@@ -153,6 +244,7 @@ export default function App() {
   async function refreshDashboard() {
     await withAction(async () => {
       await bootstrap(token);
+      await checkBackendHealth();
     }, "Dashboard refreshed");
   }
 
@@ -390,6 +482,16 @@ export default function App() {
     );
   }
 
+  const pendingAlerts = alerts.filter((alert) => !alert.acknowledgedAt);
+  const criticalCount = pendingAlerts.filter(
+    (alert) => alert.severity === "critical"
+  ).length;
+  const highCount = pendingAlerts.filter((alert) => alert.severity === "high").length;
+  const mediumCount = pendingAlerts.filter(
+    (alert) => alert.severity === "medium"
+  ).length;
+  const lowCount = pendingAlerts.filter((alert) => alert.severity === "low").length;
+
   return (
     <main className="dashboard">
       <header className="topbar">
@@ -400,6 +502,12 @@ export default function App() {
           </p>
         </div>
         <div className="topbar-actions">
+          <span className={`status-chip ${backendOnline ? "up" : "down"}`}>
+            {backendOnline ? "Backend Online" : "Backend Degraded"}
+          </span>
+          <span className="status-chip neutral">
+            Last Sync: {formatTimestamp(lastSyncAt)}
+          </span>
           <button onClick={refreshDashboard} disabled={busy}>
             Refresh
           </button>
@@ -414,9 +522,36 @@ export default function App() {
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.55 }}
         >
-          <h2>System State</h2>
+          <h2>Command Bridge</h2>
           <p>{status}</p>
           {error && <p className="error">{error}</p>}
+          <div className="command-strip">
+            <button disabled={busy} onClick={refreshDashboard}>
+              Sync Now
+            </button>
+            <button disabled={busy || !activeTrip} onClick={sendSimulatedLocation}>
+              Simulate Step
+            </button>
+            <button
+              className="danger subtle"
+              disabled={busy || !activeTrip}
+              onClick={() => triggerSOS("silent")}
+            >
+              Silent Alert
+            </button>
+          </div>
+          <label className="toggle-row">
+            <input
+              type="checkbox"
+              checked={autoRefresh}
+              onChange={(event) => setAutoRefresh(event.target.checked)}
+            />
+            <span>Auto-refresh telemetry every 45s</span>
+          </label>
+          <p className="shortcut-line">
+            Shortcuts: <strong>Shift+R</strong> refresh, <strong>Shift+M</strong>{" "}
+            simulate, <strong>Shift+S</strong> SOS, <strong>Shift+A</strong> silent SOS
+          </p>
           <div className="stats-grid">
             <div>
               <span>Trusted Circles</span>
@@ -446,6 +581,25 @@ export default function App() {
           <p>Real-time trust and risk engine visualization.</p>
           <SafetyOrb3D />
         </motion.article>
+      </section>
+
+      <section className="threat-bar">
+        <div className="threat-item critical">
+          <span>Critical</span>
+          <strong>{criticalCount}</strong>
+        </div>
+        <div className="threat-item high">
+          <span>High</span>
+          <strong>{highCount}</strong>
+        </div>
+        <div className="threat-item medium">
+          <span>Medium</span>
+          <strong>{mediumCount}</strong>
+        </div>
+        <div className="threat-item low">
+          <span>Low</span>
+          <strong>{lowCount}</strong>
+        </div>
       </section>
 
       <section className="workspace-grid">
