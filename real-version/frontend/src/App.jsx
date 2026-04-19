@@ -14,6 +14,10 @@ function randomAround(value, maxOffset = 0.0009) {
   return value + (Math.random() * 2 - 1) * maxOffset;
 }
 
+function normalizePhone(value) {
+  return String(value || "").replace(/[^0-9+]/g, "");
+}
+
 function getOrCreateDeviceId() {
   const existing = localStorage.getItem("safety_device_id");
   if (existing) {
@@ -227,12 +231,22 @@ export default function App() {
 
   async function handleAuthSubmit(event) {
     event.preventDefault();
+    const cleanPhone = normalizePhone(authForm.phone);
+    const digits = cleanPhone.replace(/\D/g, "");
+    if (digits.length < 10) {
+      setError("Enter a valid phone number (at least 10 digits).");
+      return;
+    }
+
     await withAction(async () => {
       if (authMode === "register") {
-        await api.register(authForm);
+        await api.register({
+          ...authForm,
+          phone: cleanPhone
+        });
       }
       const loginResp = await api.login({
-        phone: authForm.phone,
+        phone: cleanPhone,
         password: authForm.password
       });
       setToken(loginResp.token);
@@ -264,10 +278,16 @@ export default function App() {
       setError("Create/select a circle before adding member");
       return;
     }
+    const cleanPhone = normalizePhone(memberPhone);
+    const digits = cleanPhone.replace(/\D/g, "");
+    if (digits.length < 10) {
+      setError("Enter a valid member phone number (at least 10 digits).");
+      return;
+    }
     const response = await withAction(
       async () =>
         api.addMember(token, activeCircleId, {
-          phone: memberPhone,
+          phone: cleanPhone,
           label: memberLabel
         }),
       "Member added to trusted circle"
@@ -453,9 +473,14 @@ export default function App() {
               />
             )}
             <input
-              placeholder="Phone"
+              placeholder="Phone (10+ digits)"
               value={authForm.phone}
-              onChange={(e) => setAuthForm({ ...authForm, phone: e.target.value })}
+              onChange={(e) =>
+                setAuthForm({
+                  ...authForm,
+                  phone: normalizePhone(e.target.value)
+                })
+              }
               required
             />
             <input

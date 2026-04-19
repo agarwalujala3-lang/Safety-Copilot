@@ -9,7 +9,8 @@ Cloud-first personal safety platform with:
 
 ## Live endpoints
 
-- Web app: `http://safety-copilot-ui-119944160349-20260410111252.s3-website.ap-south-1.amazonaws.com`
+- Web app (HTTPS CDN): `https://d1j7xq1aihw0g3.cloudfront.net`
+- Web app (S3 origin): `http://safety-copilot-ui-119944160349-20260410111252.s3-website.ap-south-1.amazonaws.com`
 - Privacy policy: `http://safety-copilot-ui-119944160349-20260410111252.s3-website.ap-south-1.amazonaws.com/privacy-policy.html`
 - API base: `https://6rpyxxaw7c.execute-api.ap-south-1.amazonaws.com/api/v1`
 - Health: `https://6rpyxxaw7c.execute-api.ap-south-1.amazonaws.com/health`
@@ -93,3 +94,10 @@ flutter run --flavor dev --dart-define=FLAVOR=dev --dart-define=API_BASE_URL=htt
 
 Backend is live and functional for demo/prototype use.
 For long-term production durability, migrate persistence fully to DynamoDB (see backend infra docs).
+
+## Fast redeploy command
+
+```powershell
+cd real-version/frontend
+.\scripts\deploy-live.ps1
+```
